@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/printers")
@@ -28,5 +29,16 @@ public class PrinterController {
     @GetMapping
     public ResponseEntity<List<PrinterResponseDTO>> getAll() {
         return ResponseEntity.ok(printerService.findAll());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<PrinterResponseDTO> update(@PathVariable UUID id, @RequestBody PrinterRequestDTO dto) {
+        return ResponseEntity.ok(printerService.update(id, dto));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        printerService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }

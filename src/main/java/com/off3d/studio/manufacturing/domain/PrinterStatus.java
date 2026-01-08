@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum PrinterStatus {
-    AVALIABLE("Disponivel"),
+    AVAILABLE("Disponivel"),
     PRINTING("Imprimindo"),
     MAINTENANCE("Em manutenção");
 
