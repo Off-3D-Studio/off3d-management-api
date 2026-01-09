@@ -17,7 +17,7 @@ O sistema foi desenvolvido seguindo padrões de integridade de dados e experiên
 
 ## 🏗️ Arquitetura e Domínios
 ### Sales (Vendas)
-- **Customer:** Gestão de clientes com lógica de Upsert (cadastra ou atualiza automaticamente pelo e-mail) [cite: 2025-12-30].
+- **Customer:** Gestão de clientes com lógica de Upsert (cadastra ou atualiza automaticamente pelo e-mail).
 - **Order:** Gestão de pedidos vinculados a clientes e modelos 3D.
 
 ### Manufacturing (Manufatura)
@@ -61,7 +61,7 @@ Atualizar Status e Tempo: `PUT /print-jobs/{id}`
 ### Customers
 Cadastro Inteligente: `POST /customers`
 
-- Se o e-mail já existir, o sistema atualiza o nome e telefone do cliente automaticamente, mantendo o histórico de pedidos íntegro [cite: 2025-12-30].
+- Se o e-mail já existir, o sistema atualiza o nome e telefone do cliente automaticamente, mantendo o histórico de pedidos íntegro.
 
 ## 🛡️ Tratamento de Erros
 A API possui um `RestExceptionHandler` global que trata:
