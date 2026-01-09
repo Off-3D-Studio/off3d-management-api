@@ -31,6 +31,11 @@ public class PrinterController {
         return ResponseEntity.ok(printerService.findAll());
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<PrinterResponseDTO> getById(@PathVariable UUID id) {
+        return ResponseEntity.ok(printerService.findByIdDetailed(id));
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<PrinterResponseDTO> update(@PathVariable UUID id, @RequestBody PrinterRequestDTO dto) {
         return ResponseEntity.ok(printerService.update(id, dto));

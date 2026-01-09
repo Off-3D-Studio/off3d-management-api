@@ -59,6 +59,25 @@ public class Model3DService {
     }
 
     @Transactional
+    public Model3DResponseDTO update(UUID id, Model3DRequestDTO dto) {
+        log.info("Atualizando modelo 3D ID: {}", id);
+
+        Model3D model = modelRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Modelo 3D não encontrado"));
+
+        model.setFileName(dto.fileName());
+        model.setFilePath(dto.filePath());
+        model.setVolumeCm3(dto.volumeCm3());
+
+        var customer = customerRepository.findById(dto.customerId())
+                .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
+        model.setCustomer(customer);
+
+        Model3D updatedModel = modelRepository.save(model);
+        return mapToResponseDTO(updatedModel);
+    }
+
+    @Transactional
     public void delete(UUID id) {
         log.info("Iniciando exclusão do modelo 3D ID: {}", id);
 

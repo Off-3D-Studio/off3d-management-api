@@ -36,6 +36,11 @@ public class Model3DController {
         return ResponseEntity.ok(modelService.findByIdDetailed(id));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<Model3DResponseDTO> update(@PathVariable UUID id, @RequestBody Model3DRequestDTO dto) {
+        return ResponseEntity.ok(modelService.update(id, dto));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         modelService.delete(id);

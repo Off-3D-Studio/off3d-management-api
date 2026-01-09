@@ -71,14 +71,16 @@ public class PrintJobService {
 
         PrintJob job = findEntityById(id);
 
-        var printer = printerRepository.findById(dto.printerId())
-                .orElseThrow(() -> new RuntimeException("Impressora não encontrada"));
-        var material = materialRepository.findById(dto.materialId())
-                .orElseThrow(() -> new RuntimeException("Material não encontrado"));
+        if (dto.estimatedTime() != null) job.setEstimatedTime(dto.estimatedTime());
+        if (dto.status() != null) job.setStatus(dto.status());
 
-        job.setEstimatedTime(dto.estimatedTime());
-        job.setPrinter(printer);
-        job.setMaterial(material);
+        java.util.Optional.ofNullable(dto.printerId())
+                .ifPresent(pId -> job.setPrinter(printerRepository.findById(pId)
+                        .orElseThrow(() -> new RuntimeException("Impressora não encontrada"))));
+
+        java.util.Optional.ofNullable(dto.materialId())
+                .ifPresent(mId -> job.setMaterial(materialRepository.findById(mId)
+                        .orElseThrow(() -> new RuntimeException("Material não encontrado"))));
 
         return mapToResponseDTO(printJobRepository.save(job));
     }
@@ -121,9 +123,13 @@ public class PrintJobService {
     }
 
     private PrintJobResponseDTO mapToResponseDTO(PrintJob job) {
+        long hours = job.getEstimatedTime().toHours();
+        int minutes = job.getEstimatedTime().toMinutesPart();
+        String formattedTime = String.format("%02d:%02d:00", hours, minutes);
+
         return new PrintJobResponseDTO(
                 job.getId(),
-                job.getEstimatedTime(),
+                formattedTime,
                 job.getStatus().name(),
                 job.getStatus().getDescription(),
                 job.getOrder().getId(),
