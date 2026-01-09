@@ -24,17 +24,21 @@ public class Model3DController {
     @PostMapping
     public ResponseEntity<Model3DResponseDTO> createModel3D(@RequestBody Model3DRequestDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(modelService.save(dto));
-
     }
 
     @GetMapping
-    public ResponseEntity<List<Model3D>> getAll() {
+    public ResponseEntity<List<Model3DResponseDTO>> getAll() {
         return ResponseEntity.ok(modelService.findAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Model3D> getById(@PathVariable UUID id) {
-        return ResponseEntity.ok(modelService.findById(id));
+    public ResponseEntity<Model3DResponseDTO> getById(@PathVariable UUID id) {
+        return ResponseEntity.ok(modelService.findByIdDetailed(id));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Model3DResponseDTO> update(@PathVariable UUID id, @RequestBody Model3DRequestDTO dto) {
+        return ResponseEntity.ok(modelService.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
