@@ -27,32 +27,21 @@ public class CustomerService {
 
     @Transactional
     public CustomerResponseDTO save(CustomerRequestDTO dto) {
+        log.info("Cadastrando novo cliente: {}", dto.name());
+
         Customer customer = new Customer();
         customer.setName(dto.name());
         customer.setEmail(dto.email());
         customer.setPhone(dto.phone());
 
         Customer savedCustomer = customerRepository.save(customer);
-
-        return new CustomerResponseDTO(
-                savedCustomer.getId(),
-                savedCustomer.getName(),
-                savedCustomer.getEmail(),
-                savedCustomer.getPhone(),
-                Set.of()
-        );
+        return mapToResponseDTO(savedCustomer, false);
     }
 
     @Transactional(readOnly = true)
     public List<CustomerResponseDTO> findAll() {
         return customerRepository.findAll().stream()
-                .map(customer -> new CustomerResponseDTO(
-                        customer.getId(),
-                        customer.getName(),
-                        customer.getEmail(),
-                        customer.getPhone(),
-                        Set.of()
-                ))
+                .map(customer -> mapToResponseDTO(customer, false))
                 .toList();
     }
 
@@ -64,52 +53,20 @@ public class CustomerService {
     @Transactional(readOnly = true)
     public CustomerResponseDTO findByIdDetailed(UUID id) {
         Customer customer = findById(id);
-
-        var orderDTOs = customer.getOrders().stream()
-                .map(order -> new OrderResponseDTO(
-                        order.getId(),
-                        order.getOrderDate(),
-                        order.getTotalPrice(),
-                        order.getStatus()
-                ))
-                .collect(Collectors.toSet());
-
-        return new CustomerResponseDTO(
-                customer.getId(),
-                customer.getName(),
-                customer.getEmail(),
-                customer.getPhone(),
-                orderDTOs
-        );
+        return mapToResponseDTO(customer, true);
     }
 
     @Transactional
     public CustomerResponseDTO update(UUID id, CustomerRequestDTO dto) {
-        Customer customer = customerRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Cliente não encontrado com id: " + id));
+        log.info("Atualizando dados do cliente ID: {}", id);
 
+        Customer customer = findById(id);
         customer.setName(dto.name());
         customer.setEmail(dto.email());
         customer.setPhone(dto.phone());
 
         Customer updatedCustomer = customerRepository.save(customer);
-
-        var orderDTOs = updatedCustomer.getOrders().stream()
-                .map(order -> new OrderResponseDTO(
-                        order.getId(),
-                        order.getOrderDate(),
-                        order.getTotalPrice(),
-                        order.getStatus()
-                ))
-                .collect(Collectors.toSet());
-
-        return new CustomerResponseDTO(
-                updatedCustomer.getId(),
-                updatedCustomer.getName(),
-                updatedCustomer.getEmail(),
-                updatedCustomer.getPhone(),
-                orderDTOs
-        );
+        return mapToResponseDTO(updatedCustomer, true);
     }
 
     @Transactional
@@ -128,5 +85,28 @@ public class CustomerService {
             log.warn("Falha de segurança: Cliente {} possui pedidos vinculados e não pode ser deletado", id);
             throw e;
         }
+    }
+
+    private CustomerResponseDTO mapToResponseDTO(Customer customer, boolean detailed) {
+        Set<OrderResponseDTO> orderDTOs = Set.of();
+
+        if (detailed && customer.getOrders() != null) {
+            orderDTOs = customer.getOrders().stream()
+                    .map(order -> new OrderResponseDTO(
+                            order.getId(),
+                            order.getOrderDate(),
+                            order.getTotalPrice(),
+                            order.getStatus()
+                    ))
+                    .collect(Collectors.toSet());
+        }
+
+        return new CustomerResponseDTO(
+                customer.getId(),
+                customer.getName(),
+                customer.getEmail(),
+                customer.getPhone(),
+                orderDTOs
+        );
     }
 }

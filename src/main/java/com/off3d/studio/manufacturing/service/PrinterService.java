@@ -1,12 +1,12 @@
 package com.off3d.studio.manufacturing.service;
 
-
 import com.off3d.studio.manufacturing.domain.Printer;
 import com.off3d.studio.manufacturing.domain.PrinterStatus;
 import com.off3d.studio.manufacturing.dto.PrinterRequestDTO;
 import com.off3d.studio.manufacturing.dto.PrinterResponseDTO;
 import com.off3d.studio.manufacturing.repository.PrinterRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,7 +31,7 @@ public class PrinterService {
         Printer printer = new Printer();
         printer.setModelName(dto.modelName());
         printer.setTechnology(dto.technology());
-        printer.setStatus(PrinterStatus.AVALIABLE);
+        printer.setStatus(dto.status() != null ? dto.status() : PrinterStatus.AVAILABLE);
 
         Printer savedPrinter = printerRepository.save(printer);
         return mapToResponseDTO(savedPrinter);
@@ -39,15 +39,56 @@ public class PrinterService {
 
     @Transactional(readOnly = true)
     public List<PrinterResponseDTO> findAll() {
+        log.info("Buscando todas as impressoras cadastradas");
         return printerRepository.findAll().stream()
                 .map(this::mapToResponseDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
-
+    @Transactional(readOnly = true)
     public Printer findById(UUID id) {
         return printerRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Impressora não encontrada"));
+                .orElseThrow(() -> new RuntimeException("Impressora não encontrada: " + id));
+    }
+
+    @Transactional(readOnly = true)
+    public PrinterResponseDTO findByIdDetailed(UUID id) {
+        return mapToResponseDTO(findById(id));
+    }
+
+    @Transactional
+    public PrinterResponseDTO update(UUID id, PrinterRequestDTO dto) {
+        log.info("Atualizando Impressora ID: {} para o status: {}", id, dto.status());
+
+        Printer printer = findById(id);
+
+        printer.setModelName(dto.modelName());
+        printer.setTechnology(dto.technology());
+
+        if (dto.status() != null) {
+            printer.setStatus(dto.status());
+        }
+
+        Printer updatedPrinter = printerRepository.save(printer);
+        return mapToResponseDTO(updatedPrinter);
+    }
+
+    @Transactional
+    public void delete(UUID id) {
+        log.info("Iniciando exclusão da impressora ID: {}", id);
+
+        if (!printerRepository.existsById(id)) {
+            log.error("Erro: Impressora {} não encontrada para exclusão", id);
+            throw new RuntimeException("Impressora não encontrada");
+        }
+
+        try {
+            printerRepository.deleteById(id);
+            log.info("Impressora {} removida com sucesso", id);
+        } catch (DataIntegrityViolationException e) {
+            log.warn("Falha: Impressora {} possui trabalhos vinculados e não pode ser deletada", id);
+            throw e;
+        }
     }
 
     private PrinterResponseDTO mapToResponseDTO(Printer print) {
@@ -58,5 +99,4 @@ public class PrinterService {
                 print.getStatus()
         );
     }
-
 }

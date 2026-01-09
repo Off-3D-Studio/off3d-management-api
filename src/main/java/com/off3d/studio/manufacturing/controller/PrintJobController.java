@@ -27,6 +27,11 @@ public class PrintJobController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<PrintJobResponseDTO> update(@PathVariable UUID id, @RequestBody PrintJobRequestDTO dto) {
+        return ResponseEntity.ok(printJobService.update(id, dto));
+    }
+
     @GetMapping
     public ResponseEntity<List<PrintJobResponseDTO>> getAll() {
         return ResponseEntity.ok(printJobService.findAll());
@@ -34,17 +39,12 @@ public class PrintJobController {
 
     @GetMapping("/{id}")
     public ResponseEntity<PrintJobResponseDTO> getById(@PathVariable UUID id) {
-        PrintJob job = printJobService.findById(id);
+        return ResponseEntity.ok(printJobService.findByIdDetailed(id));
+    }
 
-        PrintJobResponseDTO response = new PrintJobResponseDTO(
-                job.getId(),
-                job.getEstimatedTime(),
-                job.getStatus().name(),
-                job.getStatus().getDescription(),
-                job.getOrder().getId(),
-                job.getPrinter().getModelName(),
-                job.getModel().getFileName()
-        );
-        return ResponseEntity.ok(response);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        printJobService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }

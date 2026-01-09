@@ -30,6 +30,8 @@ public class OrderService {
 
     @Transactional
     public OrderResponseDTO save(OrderRequestDTO dto) {
+        log.info("Criando novo pedido para o cliente ID: {}", dto.customerId());
+
         Customer customer = customerRepository.findById(dto.customerId())
                 .orElseThrow(() -> new RuntimeException("Cliente não encontrado com o ID: " + dto.customerId()));
 
@@ -40,7 +42,6 @@ public class OrderService {
         order.setCustomer(customer);
 
         Order savedOrder = orderRepository.save(order);
-
         return mapToResponseDTO(savedOrder);
     }
 
@@ -51,16 +52,18 @@ public class OrderService {
                 .toList();
     }
 
-    @Transactional
+    @Transactional(readOnly = true) // Alterado para readOnly = true por ser busca
     public OrderResponseDTO findById(UUID id) {
         Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("\"Pedido não encontrado com id: \" + id"));
+                .orElseThrow(() -> new RuntimeException("Pedido não encontrado com id: " + id));
 
         return mapToResponseDTO(order);
     }
 
     @Transactional
     public OrderResponseDTO update(UUID id, OrderRequestDTO dto) {
+        log.info("Atualizando pedido ID: {}", id);
+
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pedido não encontrado com id: " + id));
 
@@ -107,18 +110,18 @@ public class OrderService {
 
     @Transactional
     public void delete(UUID id) {
-        log.info("Tentando deletar pedido ID: {}", id);
+        log.info("Iniciando exclusão do pedido ID: {}", id);
 
         if (!orderRepository.existsById(id)) {
-            log.error("Falha ao deletar: Pedido {} não existe", id);
+            log.error("Erro: Pedido {} não encontrado para exclusão", id);
             throw new RuntimeException("Pedido não encontrado");
         }
 
         try {
             orderRepository.deleteById(id);
-            log.info("Pedido {} deletado com sucesso", id);
+            log.info("Pedido {} removido com sucesso", id);
         } catch (DataIntegrityViolationException e) {
-            log.warn("Bloqueio de segurança: Pedido {} possui vínculos ativos e não pode ser apagado", id);
+            log.warn("Falha: Pedido {} possui vínculos (como PrintJobs) e não pode ser deletado", id);
             throw e;
         }
     }
