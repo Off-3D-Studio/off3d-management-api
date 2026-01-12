@@ -1,5 +1,6 @@
 package com.off3d.studio.sales.domain;
 
+import com.off3d.studio.auth.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
@@ -30,4 +31,8 @@ public class Order {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id")
     private Customer customer;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User createdBy;
 }

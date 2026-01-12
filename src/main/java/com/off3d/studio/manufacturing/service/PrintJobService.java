@@ -1,5 +1,6 @@
 package com.off3d.studio.manufacturing.service;
 
+import com.off3d.studio.auth.service.AuthService;
 import com.off3d.studio.manufacturing.dto.PrintJobResponseDTO;
 import com.off3d.studio.manufacturing.repository.MaterialRepository;
 import com.off3d.studio.manufacturing.repository.Model3DRepository;
@@ -10,6 +11,7 @@ import com.off3d.studio.manufacturing.domain.PrintJobStatus;
 import com.off3d.studio.manufacturing.dto.PrintJobRequestDTO;
 import com.off3d.studio.sales.repository.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,17 +27,20 @@ public class PrintJobService {
     private final PrinterRepository printerRepository;
     private final MaterialRepository materialRepository;
     private final Model3DRepository modelRepository;
+    private final AuthService authService;
 
     public PrintJobService(PrintJobRepository printJobRepository,
                            OrderRepository orderRepository,
                            PrinterRepository printerRepository,
                            MaterialRepository materialRepository,
-                           Model3DRepository modelRepository) {
+                           Model3DRepository modelRepository,
+                           AuthService authService) {
         this.printJobRepository = printJobRepository;
         this.orderRepository = orderRepository;
         this.printerRepository = printerRepository;
         this.materialRepository = materialRepository;
         this.modelRepository = modelRepository;
+        this.authService = authService;
     }
 
     @Transactional
@@ -58,6 +63,8 @@ public class PrintJobService {
         printJob.setPrinter(printer);
         printJob.setMaterial(material);
         printJob.setModel(model);
+
+        printJob.setCreatedBy(authService.getCurrentUser());
 
         PrintJob savedJob = printJobRepository.save(printJob);
         log.info("PrintJob criado com sucesso. ID: {}", savedJob.getId());

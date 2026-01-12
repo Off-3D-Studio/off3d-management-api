@@ -17,7 +17,7 @@ O sistema foi desenvolvido seguindo padrões de integridade de dados e experiên
 
 ## 🏗️ Arquitetura e Domínios
 ### Sales (Vendas)
-- **Customer:** Gestão de clientes com lógica de Upsert (cadastra ou atualiza automaticamente pelo e-mail) [cite: 2025-12-30].
+- **Customer:** Gestão de clientes com lógica de Upsert (cadastra ou atualiza automaticamente pelo e-mail).
 - **Order:** Gestão de pedidos vinculados a clientes e modelos 3D.
 
 ### Manufacturing (Manufatura)
@@ -61,7 +61,21 @@ Atualizar Status e Tempo: `PUT /print-jobs/{id}`
 ### Customers
 Cadastro Inteligente: `POST /customers`
 
-- Se o e-mail já existir, o sistema atualiza o nome e telefone do cliente automaticamente, mantendo o histórico de pedidos íntegro [cite: 2025-12-30].
+- Se o e-mail já existir, o sistema atualiza o nome e telefone do cliente automaticamente, mantendo o histórico de pedidos íntegro.
+
+## 🔐 Segurança e Autenticação
+A API utiliza **Spring Security** com autenticação via **JWT (JSON Web Token)**.
+
+- **Fluxo de Acesso:** O usuário deve se registrar em `/auth/register` e realizar o login em `/auth/login` para obter o Bearer Token.
+- **Rastreamento Automático:** Cada `Order` ou `Customer` criado é automaticamente vinculado ao ID do usuário autenticado no banco de dados para fins de auditoria interna.
+- **Níveis de Acesso (Roles):**
+    - `ADMIN`: Acesso total ao sistema e gestão de sócios.
+    - `PARTNER`: Gestão de vendas e visualização de manufatura.
+    - `OPERATOR`: Foco exclusivo na fila de impressão (`PrintJobs`).
+
+### Exemplo de Requisição Autenticada
+Para acessar rotas protegidas, inclua o token no cabeçalho da requisição:
+`Authorization: Bearer eyJhbGciOiJIUzI1Ni...`
 
 ## 🛡️ Tratamento de Erros
 A API possui um `RestExceptionHandler` global que trata:

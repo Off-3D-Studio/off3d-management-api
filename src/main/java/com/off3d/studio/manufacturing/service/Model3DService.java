@@ -1,5 +1,6 @@
 package com.off3d.studio.manufacturing.service;
 
+import com.off3d.studio.auth.service.AuthService;
 import com.off3d.studio.manufacturing.domain.Model3D;
 import com.off3d.studio.manufacturing.dto.Model3DRequestDTO;
 import com.off3d.studio.manufacturing.dto.Model3DResponseDTO;
@@ -18,10 +19,13 @@ public class Model3DService {
 
     private final Model3DRepository modelRepository;
     private final CustomerRepository customerRepository;
+    private final AuthService authService;
 
-    public Model3DService(Model3DRepository modelRepository, CustomerRepository customerRepository) {
+    public Model3DService(Model3DRepository modelRepository, CustomerRepository customerRepository
+            , AuthService authService) {
         this.modelRepository = modelRepository;
         this.customerRepository = customerRepository;
+        this.authService = authService;
     }
 
     @Transactional
@@ -36,6 +40,8 @@ public class Model3DService {
         model.setFilePath(dto.filePath());
         model.setVolumeCm3(dto.volumeCm3());
         model.setCustomer(customer);
+
+        model.setCreatedBy(authService.getCurrentUser());
 
         Model3D savedModel = modelRepository.save(model);
         return mapToResponseDTO(savedModel);

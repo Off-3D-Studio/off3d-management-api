@@ -6,6 +6,7 @@ import com.off3d.studio.manufacturing.dto.PrintJobResponseDTO;
 import com.off3d.studio.manufacturing.service.PrintJobService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -43,6 +44,7 @@ public class PrintJobController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         printJobService.delete(id);
         return ResponseEntity.noContent().build();

@@ -6,6 +6,7 @@ import com.off3d.studio.manufacturing.dto.MaterialResponseDTO;
 import com.off3d.studio.manufacturing.service.MaterialService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -42,6 +43,7 @@ public class MaterialController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MaterialResponseDTO> delete(@PathVariable UUID id) {
         materialService.delete(id);
         return ResponseEntity.noContent().build();
