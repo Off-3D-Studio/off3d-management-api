@@ -1,5 +1,6 @@
 package com.off3d.studio.manufacturing.service;
 
+import com.off3d.studio.auth.service.AuthService;
 import com.off3d.studio.manufacturing.domain.Printer;
 import com.off3d.studio.manufacturing.domain.PrinterStatus;
 import com.off3d.studio.manufacturing.dto.PrinterRequestDTO;
@@ -7,6 +8,7 @@ import com.off3d.studio.manufacturing.dto.PrinterResponseDTO;
 import com.off3d.studio.manufacturing.repository.PrinterRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,9 +21,11 @@ import java.util.stream.Collectors;
 public class PrinterService {
 
     private final PrinterRepository printerRepository;
+    private final AuthService authService;
 
-    public PrinterService(PrinterRepository printerRepository) {
+    public PrinterService(PrinterRepository printerRepository, AuthService authService) {
         this.printerRepository = printerRepository;
+        this.authService = authService;
     }
 
     @Transactional
@@ -32,6 +36,8 @@ public class PrinterService {
         printer.setModelName(dto.modelName());
         printer.setTechnology(dto.technology());
         printer.setStatus(dto.status() != null ? dto.status() : PrinterStatus.AVAILABLE);
+
+        printer.setCreatedBy(authService.getCurrentUser());
 
         Printer savedPrinter = printerRepository.save(printer);
         return mapToResponseDTO(savedPrinter);

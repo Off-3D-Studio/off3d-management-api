@@ -1,5 +1,6 @@
 package com.off3d.studio.manufacturing.domain;
 
+import com.off3d.studio.auth.domain.User;
 import com.off3d.studio.sales.domain.Order;
 import jakarta.persistence.*;
 import lombok.*;
@@ -38,4 +39,7 @@ public class PrintJob {
 
     private Duration estimatedTime;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User createdBy;
 }

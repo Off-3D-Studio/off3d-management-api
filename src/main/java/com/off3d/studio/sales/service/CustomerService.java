@@ -1,5 +1,6 @@
 package com.off3d.studio.sales.service;
 
+import com.off3d.studio.auth.domain.User;
 import com.off3d.studio.sales.domain.Customer;
 import com.off3d.studio.sales.dto.CustomerRequestDTO;
 import com.off3d.studio.sales.dto.CustomerResponseDTO;
@@ -7,6 +8,7 @@ import com.off3d.studio.sales.dto.OrderResponseDTO;
 import com.off3d.studio.sales.repository.CustomerRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,12 +29,17 @@ public class CustomerService {
 
     @Transactional
     public CustomerResponseDTO save(CustomerRequestDTO dto) {
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        log.info("Sócio [{}] - ID: {} está criando um novo pedido para o cliente ID: {}",
+                currentUser.getName(), currentUser.getId(), dto.name());
         log.info("Cadastrando novo cliente: {}", dto.name());
 
         Customer customer = new Customer();
         customer.setName(dto.name());
         customer.setEmail(dto.email());
         customer.setPhone(dto.phone());
+
+        customer.setCreatedBy(currentUser);
 
         Customer savedCustomer = customerRepository.save(customer);
         return mapToResponseDTO(savedCustomer, false);

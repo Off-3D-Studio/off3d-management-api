@@ -1,11 +1,11 @@
 package com.off3d.studio.manufacturing.controller;
 
-import com.off3d.studio.manufacturing.domain.Model3D;
 import com.off3d.studio.manufacturing.dto.Model3DRequestDTO;
 import com.off3d.studio.manufacturing.dto.Model3DResponseDTO;
 import com.off3d.studio.manufacturing.service.Model3DService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -42,6 +42,7 @@ public class Model3DController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         modelService.delete(id);
         return ResponseEntity.noContent().build();

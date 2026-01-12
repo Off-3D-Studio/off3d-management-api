@@ -1,5 +1,6 @@
 package com.off3d.studio.sales.domain;
 
+import com.off3d.studio.auth.domain.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -29,4 +30,8 @@ public class Customer {
 
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<Order> orders = new HashSet<>();
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User createdBy;
 }
