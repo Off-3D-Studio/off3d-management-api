@@ -1,5 +1,6 @@
 package com.off3d.studio.manufacturing.domain;
 
+import com.off3d.studio.auth.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
 import java.util.HashSet;
@@ -29,4 +30,8 @@ public class Printer {
 
     @OneToMany(mappedBy = "printer", fetch = FetchType.LAZY)
     private Set<PrintJob> printJobs = new HashSet<>();
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User createdBy;
 }

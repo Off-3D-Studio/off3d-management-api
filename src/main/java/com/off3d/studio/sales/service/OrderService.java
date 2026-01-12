@@ -1,5 +1,6 @@
 package com.off3d.studio.sales.service;
 
+import com.off3d.studio.auth.domain.User;
 import com.off3d.studio.sales.domain.Customer;
 import com.off3d.studio.sales.domain.Order;
 import com.off3d.studio.sales.domain.OrderStatus;
@@ -9,6 +10,7 @@ import com.off3d.studio.sales.repository.CustomerRepository;
 import com.off3d.studio.sales.repository.OrderRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +32,9 @@ public class OrderService {
 
     @Transactional
     public OrderResponseDTO save(OrderRequestDTO dto) {
-        log.info("Criando novo pedido para o cliente ID: {}", dto.customerId());
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        log.info("Sócio [{}] - ID: {} está criando um novo pedido para o cliente ID: {}",
+                currentUser.getName(), currentUser.getId(), dto.customerId());
 
         Customer customer = customerRepository.findById(dto.customerId())
                 .orElseThrow(() -> new RuntimeException("Cliente não encontrado com o ID: " + dto.customerId()));
@@ -40,6 +44,8 @@ public class OrderService {
         order.setTotalPrice(dto.totalPrice());
         order.setStatus(OrderStatus.PENDING);
         order.setCustomer(customer);
+
+        order.setCreatedBy(currentUser);
 
         Order savedOrder = orderRepository.save(order);
         return mapToResponseDTO(savedOrder);

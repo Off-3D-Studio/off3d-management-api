@@ -1,5 +1,6 @@
 package com.off3d.studio.manufacturing.service;
 
+import com.off3d.studio.auth.service.AuthService;
 import com.off3d.studio.manufacturing.domain.Material;
 import com.off3d.studio.manufacturing.dto.MaterialRequestDTO;
 import com.off3d.studio.manufacturing.dto.MaterialResponseDTO;
@@ -18,9 +19,11 @@ import java.util.stream.Collectors;
 public class MaterialService {
 
     private final MaterialRepository materialRepository;
+    private final AuthService authService;
 
-    public MaterialService(MaterialRepository materialRepository) {
+    public MaterialService(MaterialRepository materialRepository, AuthService authService) {
         this.materialRepository = materialRepository;
+        this.authService = authService;
     }
 
     @Transactional
@@ -28,6 +31,8 @@ public class MaterialService {
         log.info("Cadastrando novo material: {} - {}", dto.name(), dto.brand());
         Material material = new Material();
         updateMaterialFromDto(material, dto);
+
+        material.setCreatedBy(authService.getCurrentUser());
 
         Material savedMaterial = materialRepository.save(material);
 
