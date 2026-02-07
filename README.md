@@ -12,7 +12,9 @@ O sistema foi desenvolvido seguindo padrões de integridade de dados e experiên
 - **Framework:** Spring Boot 3.4.1.
 - **Persistência:** Spring Data JPA / Hibernate.
 - **Banco de Dados:** PostgreSQL.
-- **Produtividade:** Lombok & MapStruct (ou mapeamento manual via Record).
+- **Produtividade:** Lombok.
+- **Segurança:** Spring Security com autenticação via JWT (java-jwt 4.4.0).
+- **Validação:** Bean Validation.
 - **Logs:** SLF4J com Logback para rastreamento de operações críticas.
 
 ## 🏗️ Arquitetura e Domínios
