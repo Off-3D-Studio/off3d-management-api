@@ -1,0 +1,10 @@
+[
+  {
+    "totalPrice": 50.00,
+    "status": "COMPLETED"
+  },
+  {
+    "totalPrice": 100.00,
+    "status": "PENDING"
+  }
+]

@@ -116,4 +116,33 @@ public class CustomerService {
                 orderDTOs
         );
     }
+
+    @Transactional
+    public CustomerResponseDTO upsert(CustomerRequestDTO dto) {
+        log.info("Iniciando operação de Upsert para o e-mail: {}", dto.email());
+
+        // 1. Tenta buscar o cliente pelo e-mail
+        Customer customer = customerRepository.findByEmail(dto.email())
+                .map(existingCustomer -> {
+                    // 2. Se existe, atualiza os dados
+                    log.info("Cliente encontrado. Atualizando ID: {}", existingCustomer.getId());
+                    existingCustomer.setName(dto.name());
+                    existingCustomer.setPhone(dto.phone());
+                    return existingCustomer;
+                })
+                .orElseGet(() -> {
+                    // 3. Se não existe, cria um novo
+                    log.info("Cliente não encontrado. Criando novo.");
+                    User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+                    Customer newCustomer = new Customer();
+                    newCustomer.setEmail(dto.email());
+                    newCustomer.setName(dto.name());
+                    newCustomer.setPhone(dto.phone());
+                    newCustomer.setCreatedBy(currentUser);
+                    return newCustomer;
+                });
+
+        Customer savedCustomer = customerRepository.save(customer);
+        return mapToResponseDTO(savedCustomer, false);
+    }
 }
