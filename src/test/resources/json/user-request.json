@@ -1,0 +1,6 @@
+{
+  "name": "Test User",
+  "email": "user@test.com",
+  "password": "encodedPassword",
+  "role": "OPERATOR"
+}
