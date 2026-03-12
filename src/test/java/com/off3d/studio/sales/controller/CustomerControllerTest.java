@@ -48,10 +48,8 @@ class CustomerControllerTest {
     @Test
     @DisplayName("Deve retornar 201 Created ao salvar um novo cliente")
     void shouldReturnCreatedWhenSavingNewCustomer() throws Exception {
-        // Cenario
         CustomerRequestDTO dto = JsonHandler.getCustomerRequest();
 
-        // Objeto de resposta preenchido
         CustomerResponseDTO responseDTO = new CustomerResponseDTO(
                 UUID.randomUUID(),
                 dto.name(),
@@ -63,7 +61,6 @@ class CustomerControllerTest {
         // Garante que o mock do service retorne o objeto preenchido
         when(customerService.save(any(CustomerRequestDTO.class))).thenReturn(responseDTO);
 
-        // Acao e Verificacao
         mockMvc.perform(post("/customers")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))

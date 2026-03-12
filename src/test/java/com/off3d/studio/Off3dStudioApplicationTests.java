@@ -12,6 +12,5 @@ class Off3dStudioApplicationTests {
 	@Test
 	@DisplayName("Deve carregar o contexto do Spring com sucesso")
 	void contextLoads() {
-		// Se este metodo rodar sem exceções, o contexto carregou corretamente.
 	}
 }

@@ -28,7 +28,7 @@ class OrderRepositoryTest {
     void shouldFindAllOrdersByCustomerFromJson() {
         Customer customerTransient = JsonHandler.getCustomerAsEntity();
 
-        // 2. FORÇAR ID NULO PARA GERAR UM NOVO
+        // FORÇAR ID NULO PARA GERAR UM NOVO
         customerTransient.setId(null);
 
         final Customer managedCustomer = entityManager.persist(customerTransient);
@@ -47,7 +47,6 @@ class OrderRepositoryTest {
         // Acao: Buscar usando o repositório
         List<Order> foundOrders = orderRepository.findByCustomerId(managedCustomer.getId());
 
-        // Verificacao
         assertEquals(2, foundOrders.size());
         assertEquals(managedCustomer.getName(), foundOrders.get(0).getCustomer().getName());
     }

@@ -59,12 +59,9 @@ class PrintJobServiceTest {
         // Configura o usuário autenticado que vem do JSON de usuário
         when(authService.getCurrentUser()).thenReturn(JsonHandler.getUserAsEntity());
 
-        // --- CORREÇÃO: Carrega as entidades de domínio dos arquivos JSON ---
-        // IMPORTANTE: Certifique-se que os IDs nos arquivos JSON são válidos (hexadecimais)
         var printerEntity = JsonHandler.getPrinterAsEntity();
         var materialEntity = JsonHandler.getMaterialAsEntity();
         var model3DEntity = JsonHandler.getModel3DAsEntity();
-        // ------------------------------------------------------------------
 
         // 2. CONFIGURAÇÃO DOS MOCKS (Simula o comportamento do banco de dados)
         Order order = new Order();
@@ -72,7 +69,6 @@ class PrintJobServiceTest {
 
         when(orderRepository.findById(any())).thenReturn(Optional.of(order));
 
-        // --- CORREÇÃO: Retorna as instâncias carregadas do JSON ---
         when(printerRepository.findById(any())).thenReturn(Optional.of(printerEntity));
         when(materialRepository.findById(any())).thenReturn(Optional.of(materialEntity));
         when(modelRepository.findById(any())).thenReturn(Optional.of(model3DEntity));
@@ -84,22 +80,16 @@ class PrintJobServiceTest {
         savedJob.setEstimatedTime(Duration.ofHours(3).plusMinutes(45));
         savedJob.setOrder(order);
 
-        // --- CORREÇÃO: Associa as instâncias únicas para evitar NullPointerException ---
-        // O mapper tentará acessar getPrinter().getModelName(), etc.
         savedJob.setPrinter(printerEntity);
         savedJob.setMaterial(materialEntity);
         savedJob.setModel(model3DEntity);
-        // -------------------------------------------------------------------------------
 
         // Define que quando o save for chamado, retorna o objeto completo
         when(printJobRepository.save(any(PrintJob.class))).thenReturn(savedJob);
 
-        // Acao
         PrintJobResponseDTO response = printJobService.createPrintJob(dto);
 
-        // Verificacao
         assertNotNull(response);
-        // Verifique se os dados mapeados condizem com o carregado no savedJob
         assertEquals("03:45:00", response.estimatedTime());
         assertEquals(PrintJobStatus.QUEUED.name(), response.status());
     }
@@ -107,11 +97,9 @@ class PrintJobServiceTest {
     @Test
     @DisplayName("Deve lançar erro ao deletar PrintJob em andamento")
     void shouldThrowExceptionWhenDeletingPrintingJob() {
-        // Cenario
         printJob.setStatus(PrintJobStatus.PRINTING);
         when(printJobRepository.findById(jobId)).thenReturn(Optional.of(printJob));
 
-        // Acao & Verificacao
         Exception exception = assertThrows(RuntimeException.class, () -> {
             printJobService.delete(jobId);
         });

@@ -17,6 +17,14 @@ O sistema foi desenvolvido seguindo padrões de integridade de dados e experiên
 - **Validação:** Bean Validation.
 - **Logs:** SLF4J com Logback para rastreamento de operações críticas.
 
+## 🧪 Qualidade e Testes
+O projeto adota uma estratégia de testes em pirâmide para garantir a estabilidade das entregas:
+- **Testes Unitários (JUnit 5 & Mockito):** Cobertura das regras de negócio na camada de `Service` e validação de segurança no `TokenService`.
+- **Testes de Integração de Fatias (Slice Tests):**
+  - `@WebMvcTest`: Validação dos endpoints, serialização JSON e tratamento de exceções.
+  - `@DataJpaTest`: Garantia da integridade dos relacionamentos JPA e queries customizadas no H2/PostgreSQL.
+- **Cobertura de Código:** Integração com **JaCoCo** para monitoramento de cobertura, garantindo que fluxos críticos (como cancelamento de pedidos e auditoria de usuários) estejam protegidos.
+
 ## 🏗️ Arquitetura e Domínios
 ### Sales (Vendas)
 - **Customer:** Gestão de clientes com lógica de Upsert (cadastra ou atualiza automaticamente pelo e-mail).
