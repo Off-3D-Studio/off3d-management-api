@@ -48,7 +48,6 @@ class OrderServiceTest {
     @Test
     @DisplayName("Deve salvar um novo pedido com sucesso")
     void shouldSaveOrder() {
-        // Cenario
         mockSecurityContext();
         OrderRequestDTO dto = JsonHandler.getOrderRequest();
         Customer customer = new Customer();
@@ -57,10 +56,8 @@ class OrderServiceTest {
         when(customerRepository.findById(dto.customerId())).thenReturn(Optional.of(customer));
         when(orderRepository.save(any(Order.class))).thenAnswer(i -> i.getArguments()[0]);
 
-        // Acao
         OrderResponseDTO response = orderService.save(dto);
 
-        // Verificacao
         assertNotNull(response);
         assertEquals(dto.totalPrice(), response.totalPrice());
         assertEquals(OrderStatus.PENDING, response.status());
@@ -70,7 +67,6 @@ class OrderServiceTest {
     @Test
     @DisplayName("Deve iniciar a produção do pedido (status: IN_PROGRESS)")
     void shouldStartProduction() {
-        // Cenario
         UUID orderId = UUID.randomUUID();
         Order order = new Order();
         order.setId(orderId);
@@ -79,10 +75,8 @@ class OrderServiceTest {
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
         when(orderRepository.save(any(Order.class))).thenAnswer(i -> i.getArguments()[0]);
 
-        // Acao
         OrderResponseDTO response = orderService.startProduction(orderId);
 
-        // Verificacao
         assertEquals(OrderStatus.IN_PROGRESS, response.status());
         verify(orderRepository).save(order);
     }
@@ -90,7 +84,6 @@ class OrderServiceTest {
     @Test
     @DisplayName("Não deve cancelar o pedido se ele já estiver concluído")
     void shouldNotCancelCompletedOrder() {
-        // Cenario
         UUID orderId = UUID.randomUUID();
 
         Order order = JsonHandler.getOrderAsEntity();
@@ -99,7 +92,6 @@ class OrderServiceTest {
 
         when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
 
-        // Acao & Verificacao
         Exception exception = assertThrows(RuntimeException.class, () -> {
             orderService.cancelOrder(orderId);
         });
@@ -111,7 +103,6 @@ class OrderServiceTest {
     @Test
     @DisplayName("Deve lançar DataIntegrityViolationException ao deletar pedido com vínculos")
     void shouldThrowExceptionWhenDeletingOrderWithDependencies() {
-        // Cenario
         UUID orderId = JsonHandler.getOrderIdToDelete();
 
         when(orderRepository.existsById(orderId)).thenReturn(true);
@@ -119,7 +110,6 @@ class OrderServiceTest {
         doThrow(new DataIntegrityViolationException("Erro de integridade"))
                 .when(orderRepository).deleteById(orderId);
 
-        // Acao & Verificacao
         assertThrows(DataIntegrityViolationException.class, () -> {
             orderService.delete(orderId);
         });

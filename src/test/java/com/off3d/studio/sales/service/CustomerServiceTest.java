@@ -44,7 +44,6 @@ class CustomerServiceTest {
     @Test
     @DisplayName("Deve salvar um novo Customer com sucesso e associar ao usuário do JSON")
     void shouldSaveCustomer() {
-        // Cenario
         mockSecurityContext();
         CustomerRequestDTO dto = JsonHandler.getCustomerRequest();
 
@@ -58,10 +57,8 @@ class CustomerServiceTest {
 
         when(customerRepository.save(any(Customer.class))).thenReturn(savedCustomer);
 
-        // Acao
         CustomerResponseDTO response = customerService.save(dto);
 
-        // Verificacao
         assertNotNull(response);
 
         // Verifica se o createdBy foi definido corretamente
@@ -73,7 +70,6 @@ class CustomerServiceTest {
     @Test
     @DisplayName("Deve atualizar um Customer existente com sucesso")
     void shouldUpdateCustomer() {
-        // Cenario
         UUID customerId = UUID.randomUUID();
         CustomerRequestDTO dto = JsonHandler.getCustomerRequest();
 
@@ -84,10 +80,8 @@ class CustomerServiceTest {
         when(customerRepository.findById(customerId)).thenReturn(Optional.of(existingCustomer));
         when(customerRepository.save(any(Customer.class))).thenReturn(existingCustomer);
 
-        // Acao
         CustomerResponseDTO response = customerService.update(customerId, dto);
 
-        // Verificacao
         assertNotNull(response);
         assertEquals(dto.name(), response.name());
         verify(customerRepository, times(1)).save(any(Customer.class));
@@ -96,8 +90,7 @@ class CustomerServiceTest {
     @Test
     @DisplayName("Deve atualizar Customer se e-mail já existir (Upsert)")
     void shouldUpsertCustomerWhenEmailExists() {
-        // Cenario
-        CustomerRequestDTO dto = JsonHandler.getCustomerRequest(); // JSON com "maria@email.com"
+        CustomerRequestDTO dto = JsonHandler.getCustomerRequest();
 
         Customer existingCustomer = new Customer();
         existingCustomer.setId(UUID.randomUUID()); // Já tem ID
@@ -108,14 +101,11 @@ class CustomerServiceTest {
         when(customerRepository.findByEmail(dto.email())).thenReturn(Optional.of(existingCustomer));
         when(customerRepository.save(any(Customer.class))).thenReturn(existingCustomer);
 
-        // Acao
         CustomerResponseDTO response = customerService.upsert(dto);
 
-        // Verificacao
         assertNotNull(response);
         assertEquals(dto.name(), response.name());
 
-        // Verifica se o save foi chamado apenas UMA vez
         verify(customerRepository, times(1)).save(any(Customer.class));
     }
 }

@@ -23,7 +23,6 @@ class CustomerRepositoryTest {
     @Test
     @DisplayName("Deve salvar e buscar um Customer pelo ID")
     void shouldSaveAndFindCustomerById() {
-        // Cenario
         Customer customer = new Customer();
         customer.setName("Maria Silva");
         customer.setEmail("maria@email.com");
@@ -33,10 +32,8 @@ class CustomerRepositoryTest {
         entityManager.persist(customer);
         entityManager.flush();
 
-        // Acao
         Optional<Customer> foundCustomer = customerRepository.findById(customer.getId());
 
-        // Verificacao
         assertTrue(foundCustomer.isPresent());
         assertEquals(customer.getEmail(), foundCustomer.get().getEmail());
     }
@@ -44,7 +41,6 @@ class CustomerRepositoryTest {
     @Test
     @DisplayName("Deve deletar um Customer existente")
     void shouldDeleteCustomer() {
-        // Cenario
         Customer customer = new Customer();
         customer.setName("João Souza");
         customer.setEmail("joao@email.com");
@@ -53,10 +49,8 @@ class CustomerRepositoryTest {
         entityManager.persist(customer);
         entityManager.flush();
 
-        // Acao
         customerRepository.deleteById(customer.getId());
 
-        // Verificacao
         Optional<Customer> foundCustomer = customerRepository.findById(customer.getId());
         assertFalse(foundCustomer.isPresent());
     }
