@@ -40,7 +40,7 @@ public class SecurityConfig {
                         .requestMatchers("/orders/**").hasAnyRole("ADMIN", "PARTNER")
 
                         // Módulo Manufacturing: Controle de produção
-                        .requestMatchers("/printers/**").hasRole("ADMIN") // Proteção de Negócio, impedindo que um OPERATOR acesse dados financeiros ou lista de clientes
+                        .requestMatchers("/printers/**").hasRole("ADMIN") // Proteção de Negócio
                         .requestMatchers("/print-jobs/**").hasAnyRole("ADMIN", "OPERATOR", "PARTNER")
 
                         // Qualquer outra rota exige estar logado
