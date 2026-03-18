@@ -47,7 +47,6 @@ class CustomerServiceTest {
         mockSecurityContext();
         CustomerRequestDTO dto = JsonHandler.getCustomerRequest();
 
-        // Captura o objeto Customer que será passado para o save()
         ArgumentCaptor<Customer> customerCaptor = ArgumentCaptor.forClass(Customer.class);
 
         Customer savedCustomer = new Customer();
@@ -61,7 +60,6 @@ class CustomerServiceTest {
 
         assertNotNull(response);
 
-        // Verifica se o createdBy foi definido corretamente
         verify(customerRepository).save(customerCaptor.capture());
         Customer customerToSave = customerCaptor.getValue();
         assertEquals("user@test.com", customerToSave.getCreatedBy().getEmail());
@@ -93,11 +91,10 @@ class CustomerServiceTest {
         CustomerRequestDTO dto = JsonHandler.getCustomerRequest();
 
         Customer existingCustomer = new Customer();
-        existingCustomer.setId(UUID.randomUUID()); // Já tem ID
+        existingCustomer.setId(UUID.randomUUID());
         existingCustomer.setEmail(dto.email());
         existingCustomer.setName("Nome Antigo");
 
-        // Simula que o repositório encontrou o cliente pelo e-mail
         when(customerRepository.findByEmail(dto.email())).thenReturn(Optional.of(existingCustomer));
         when(customerRepository.save(any(Customer.class))).thenReturn(existingCustomer);
 

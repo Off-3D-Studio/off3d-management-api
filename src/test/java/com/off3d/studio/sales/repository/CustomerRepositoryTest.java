@@ -28,7 +28,6 @@ class CustomerRepositoryTest {
         customer.setEmail("maria@email.com");
         customer.setPhone("11999999999");
 
-        // Salva usando o EntityManager
         entityManager.persist(customer);
         entityManager.flush();
 

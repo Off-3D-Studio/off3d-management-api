@@ -15,7 +15,6 @@ class TokenServiceTest {
     @BeforeEach
     void setup() {
         tokenService = new TokenService();
-        // Injeta o valor do secret manualmente já que não temos o contexto do Spring
         ReflectionTestUtils.setField(tokenService, "secret", "test-secret-123");
     }
 

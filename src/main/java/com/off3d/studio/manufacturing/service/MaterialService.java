@@ -1,6 +1,8 @@
 package com.off3d.studio.manufacturing.service;
 
 import com.off3d.studio.auth.service.AuthService;
+import com.off3d.studio.infra.exceptions.BusinessException;
+import com.off3d.studio.infra.exceptions.ResourceNotFoundException;
 import com.off3d.studio.manufacturing.domain.Material;
 import com.off3d.studio.manufacturing.dto.MaterialRequestDTO;
 import com.off3d.studio.manufacturing.dto.MaterialResponseDTO;
@@ -12,7 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
+
+import static com.off3d.studio.infra.config.ErrorMessages.MATERIAL_NOT_FOUND;
 
 @Slf4j
 @Service
@@ -31,50 +34,49 @@ public class MaterialService {
         log.info("Cadastrando novo material: {} - {}", dto.name(), dto.brand());
         Material material = new Material();
         updateMaterialFromDto(material, dto);
-
         material.setCreatedBy(authService.getCurrentUser());
 
-        Material savedMaterial = materialRepository.save(material);
-
-        return mapToResponseDTO(savedMaterial);
+        return mapToResponseDTO(materialRepository.save(material));
     }
 
     @Transactional(readOnly = true)
     public List<MaterialResponseDTO> findAll() {
         return materialRepository.findAll().stream()
                 .map(this::mapToResponseDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
-    @Transactional
+    public Material findEntityById(UUID id) {
+        return materialRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(MATERIAL_NOT_FOUND + id));
+    }
+
+    @Transactional(readOnly = true)
     public MaterialResponseDTO findById(UUID id) {
-        Material material = materialRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Material não encontrado com o ID: " + id));
-        return mapToResponseDTO(material);
+        return mapToResponseDTO(findEntityById(id));
     }
 
     @Transactional
     public MaterialResponseDTO update(UUID id, MaterialRequestDTO dto) {
         log.info("Atualizando material ID: {}", id);
-        Material material = materialRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Material não encontrado"));
+        Material material = findEntityById(id);
 
         updateMaterialFromDto(material, dto);
-        return  mapToResponseDTO(materialRepository.save(material));
+        return mapToResponseDTO(materialRepository.save(material));
     }
 
     @Transactional
     public void delete(UUID id) {
         log.info("Tentando excluir material ID: {}", id);
-        if (!materialRepository.existsById(id)) {
-            throw new RuntimeException("Material não encontrado");
-        }
+
+        Material material = findEntityById(id);
+
         try {
-            materialRepository.deleteById(id);
+            materialRepository.delete(material);
             log.info("Material {} excluido com sucesso", id);
         } catch (DataIntegrityViolationException e) {
             log.warn("Bloqueio: Material {} está vinculado a impressões e não pode ser removido", id);
-            throw e;
+            throw new BusinessException("Não é possível excluir um material que possui registros de impressão vinculados.");
         }
     }
 

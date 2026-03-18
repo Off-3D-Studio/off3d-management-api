@@ -34,19 +34,15 @@ public class SecurityConfig {
                 .cors(cors -> cors.configure(http))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        // Acesso livre para autenticação
                         .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
 
-                        // Módulo Sales: Apenas Sócios e Admins
                         .requestMatchers("/customers/**").hasAnyRole(ADMIN_VALUE, PARTNER_VALUE)
                         .requestMatchers("/orders/**").hasAnyRole(ADMIN_VALUE, PARTNER_VALUE)
 
-                        // Módulo Manufacturing: Controle de produção
-                        .requestMatchers("/printers/**").hasRole("ADMIN") // Proteção de Negócio
+                        .requestMatchers("/printers/**").hasRole("ADMIN")
                         .requestMatchers("/print-jobs/**").hasAnyRole(ADMIN_VALUE, OPERATOR_VALUE, PARTNER_VALUE)
 
-                        // Qualquer outra rota exige estar logado
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)

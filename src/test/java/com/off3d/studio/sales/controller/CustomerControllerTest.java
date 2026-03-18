@@ -58,7 +58,6 @@ class CustomerControllerTest {
                 Set.of()
         );
 
-        // Garante que o mock do service retorne o objeto preenchido
         when(customerService.save(any(CustomerRequestDTO.class))).thenReturn(responseDTO);
 
         mockMvc.perform(post("/customers")

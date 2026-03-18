@@ -53,17 +53,14 @@ class PrintJobServiceTest {
     @Test
     @DisplayName("Deve criar um PrintJob com sucesso usando JSONs")
     void shouldCreatePrintJobWithJson() {
-        // 1. DADOS DE ENTRADA E CONTEXTO (Dados que vêm do front-end e sessão)
         PrintJobRequestDTO dto = JsonHandler.getPrintJobRequest();
 
-        // Configura o usuário autenticado que vem do JSON de usuário
         when(authService.getCurrentUser()).thenReturn(JsonHandler.getUserAsEntity());
 
         var printerEntity = JsonHandler.getPrinterAsEntity();
         var materialEntity = JsonHandler.getMaterialAsEntity();
         var model3DEntity = JsonHandler.getModel3DAsEntity();
 
-        // 2. CONFIGURAÇÃO DOS MOCKS (Simula o comportamento do banco de dados)
         Order order = new Order();
         order.setId(UUID.randomUUID());
 
@@ -73,7 +70,6 @@ class PrintJobServiceTest {
         when(materialRepository.findById(any())).thenReturn(Optional.of(materialEntity));
         when(modelRepository.findById(any())).thenReturn(Optional.of(model3DEntity));
 
-        // 3. ENTIDADE DE SAÍDA (O que o serviço processa e retorna ao salvar)
         PrintJob savedJob = new PrintJob();
         savedJob.setId(UUID.randomUUID());
         savedJob.setStatus(PrintJobStatus.QUEUED);
@@ -84,7 +80,6 @@ class PrintJobServiceTest {
         savedJob.setMaterial(materialEntity);
         savedJob.setModel(model3DEntity);
 
-        // Define que quando o save for chamado, retorna o objeto completo
         when(printJobRepository.save(any(PrintJob.class))).thenReturn(savedJob);
 
         PrintJobResponseDTO response = printJobService.createPrintJob(dto);

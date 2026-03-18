@@ -7,6 +7,4 @@ import java.util.UUID;
 
 @Repository
 public interface Model3DRepository extends JpaRepository<Model3D, UUID> {
-    // Útil para buscar arquivos específicos pelo nome:
-    // Optional<Model3D> findByFileName(String fileName);
 }
