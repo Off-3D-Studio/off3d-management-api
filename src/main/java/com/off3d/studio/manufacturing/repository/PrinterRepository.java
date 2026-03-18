@@ -7,10 +7,4 @@ import java.util.UUID;
 
 @Repository
 public interface PrinterRepository extends JpaRepository<Printer, UUID> {
-
-    // O Spring Data JPA já cria automaticamente métodos como:
-    // save(), findById(), findAll(), deleteById(), etc.
-
-    // Se quiser buscar impressoras por tecnologia (FDM, SLA):
-    // List<Printer> findByTechnology(String technology);
 }

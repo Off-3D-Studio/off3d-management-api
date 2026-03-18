@@ -1,6 +1,7 @@
 package com.off3d.studio.manufacturing.service;
 
 import com.off3d.studio.auth.service.AuthService;
+import com.off3d.studio.infra.exceptions.ResourceNotFoundException;
 import com.off3d.studio.manufacturing.domain.Printer;
 import com.off3d.studio.manufacturing.domain.PrinterStatus;
 import com.off3d.studio.manufacturing.dto.PrinterRequestDTO;
@@ -59,14 +60,17 @@ public class PrinterService {
 
     @Transactional(readOnly = true)
     public PrinterResponseDTO findByIdDetailed(UUID id) {
-        return mapToResponseDTO(findById(id));
+        return printerRepository.findById(id)
+                .map(this::mapToResponseDTO)
+                .orElseThrow(() -> new ResourceNotFoundException("Impressora não encontrada: " + id));
     }
 
     @Transactional
     public PrinterResponseDTO update(UUID id, PrinterRequestDTO dto) {
         log.info("Atualizando Impressora ID: {} para o status: {}", id, dto.status());
 
-        Printer printer = findById(id);
+        Printer printer = printerRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Impressora não encontrada: " + id));
 
         printer.setModelName(dto.modelName());
         printer.setTechnology(dto.technology());
@@ -75,25 +79,22 @@ public class PrinterService {
             printer.setStatus(dto.status());
         }
 
-        Printer updatedPrinter = printerRepository.save(printer);
-        return mapToResponseDTO(updatedPrinter);
+        return mapToResponseDTO(printerRepository.save(printer));
     }
 
     @Transactional
     public void delete(UUID id) {
         log.info("Iniciando exclusão da impressora ID: {}", id);
 
-        if (!printerRepository.existsById(id)) {
-            log.error("Erro: Impressora {} não encontrada para exclusão", id);
-            throw new RuntimeException("Impressora não encontrada");
-        }
+        Printer printer = printerRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Impressora não encontrada para exclusão: " + id));
 
         try {
-            printerRepository.deleteById(id);
+            printerRepository.delete(printer);
             log.info("Impressora {} removida com sucesso", id);
         } catch (DataIntegrityViolationException e) {
-            log.warn("Falha: Impressora {} possui trabalhos vinculados e não pode ser deletada", id);
-            throw e;
+            log.warn("Falha: Impressora {} possui trabalhos vinculados", id);
+            throw new IllegalStateException("Não é possível deletar uma impressora com trabalhos vinculados", e);
         }
     }
 

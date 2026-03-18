@@ -1,6 +1,5 @@
 package com.off3d.studio.manufacturing.controller;
 
-import com.off3d.studio.manufacturing.domain.PrintJob;
 import com.off3d.studio.manufacturing.dto.PrintJobRequestDTO;
 import com.off3d.studio.manufacturing.dto.PrintJobResponseDTO;
 import com.off3d.studio.manufacturing.service.PrintJobService;

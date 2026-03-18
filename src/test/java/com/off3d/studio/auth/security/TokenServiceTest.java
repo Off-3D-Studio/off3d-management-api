@@ -1,7 +1,6 @@
 package com.off3d.studio.auth.security;
 
 import com.off3d.studio.auth.domain.User;
-import com.off3d.studio.auth.domain.UserRole;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

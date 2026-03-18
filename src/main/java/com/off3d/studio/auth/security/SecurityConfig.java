@@ -14,6 +14,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import static com.off3d.studio.auth.domain.UserRole.Constants.*;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -29,6 +31,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configure(http))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         // Acesso livre para autenticação
@@ -36,12 +39,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
 
                         // Módulo Sales: Apenas Sócios e Admins
-                        .requestMatchers("/customers/**").hasAnyRole("ADMIN", "PARTNER")
-                        .requestMatchers("/orders/**").hasAnyRole("ADMIN", "PARTNER")
+                        .requestMatchers("/customers/**").hasAnyRole(ADMIN_VALUE, PARTNER_VALUE)
+                        .requestMatchers("/orders/**").hasAnyRole(ADMIN_VALUE, PARTNER_VALUE)
 
                         // Módulo Manufacturing: Controle de produção
                         .requestMatchers("/printers/**").hasRole("ADMIN") // Proteção de Negócio
-                        .requestMatchers("/print-jobs/**").hasAnyRole("ADMIN", "OPERATOR", "PARTNER")
+                        .requestMatchers("/print-jobs/**").hasAnyRole(ADMIN_VALUE, OPERATOR_VALUE, PARTNER_VALUE)
 
                         // Qualquer outra rota exige estar logado
                         .anyRequest().authenticated()
