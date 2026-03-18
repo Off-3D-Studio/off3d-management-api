@@ -1,6 +1,5 @@
 package com.off3d.studio.manufacturing.controller;
 
-import com.off3d.studio.manufacturing.domain.Material;
 import com.off3d.studio.manufacturing.dto.MaterialRequestDTO;
 import com.off3d.studio.manufacturing.dto.MaterialResponseDTO;
 import com.off3d.studio.manufacturing.service.MaterialService;

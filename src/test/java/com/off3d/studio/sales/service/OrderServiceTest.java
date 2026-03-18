@@ -1,6 +1,8 @@
 package com.off3d.studio.sales.service;
 
 import com.off3d.studio.auth.domain.User;
+import com.off3d.studio.infra.exceptions.BusinessException;
+import com.off3d.studio.infra.exceptions.ResourceNotFoundException;
 import com.off3d.studio.sales.domain.Customer;
 import com.off3d.studio.sales.domain.Order;
 import com.off3d.studio.sales.domain.OrderStatus;
@@ -101,19 +103,33 @@ class OrderServiceTest {
     }
 
     @Test
-    @DisplayName("Deve lançar DataIntegrityViolationException ao deletar pedido com vínculos")
+    @DisplayName("Deve lançar BusinessException ao deletar pedido com vínculos")
     void shouldThrowExceptionWhenDeletingOrderWithDependencies() {
-        UUID orderId = JsonHandler.getOrderIdToDelete();
+        UUID orderId = UUID.randomUUID();
+        Order order = new Order();
+        order.setId(orderId);
 
-        when(orderRepository.existsById(orderId)).thenReturn(true);
-        // Simula a falha de integridade
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+
         doThrow(new DataIntegrityViolationException("Erro de integridade"))
-                .when(orderRepository).deleteById(orderId);
+                .when(orderRepository).delete(order);
 
-        assertThrows(DataIntegrityViolationException.class, () -> {
+        assertThrows(BusinessException.class, () -> {
             orderService.delete(orderId);
         });
 
-        verify(orderRepository, times(1)).deleteById(orderId);
+        verify(orderRepository, times(1)).delete(order);
+    }
+
+    @Test
+    @DisplayName("Deve lançar ResourceNotFoundException ao tentar deletar pedido inexistente")
+    void shouldThrowExceptionWhenDeletingNonExistentOrder() {
+        UUID orderId = UUID.randomUUID();
+
+        when(orderRepository.findById(orderId)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> {
+            orderService.delete(orderId);
+        });
     }
 }
