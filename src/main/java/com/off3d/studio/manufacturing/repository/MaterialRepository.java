@@ -7,6 +7,4 @@ import java.util.UUID;
 
 @Repository
 public interface MaterialRepository extends JpaRepository<Material, UUID> {
-    // Aqui você poderá adicionar métodos como:
-    // List<Material> findByColor(String color);
 }

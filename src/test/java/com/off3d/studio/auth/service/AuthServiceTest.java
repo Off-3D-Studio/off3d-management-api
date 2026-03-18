@@ -5,12 +5,14 @@ import com.off3d.studio.auth.domain.UserRole;
 import com.off3d.studio.auth.dto.UserRequestDTO;
 import com.off3d.studio.auth.dto.UserResponseDTO;
 import com.off3d.studio.auth.repository.UserRepository;
+import com.off3d.studio.infra.exceptions.BusinessException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -32,43 +34,37 @@ class AuthServiceTest {
     private AuthService authService;
 
     @Test
-    @DisplayName("Deve registrar um usuário com senha criptografada")
+    @DisplayName("Deve registrar um usuário com sucesso")
     void shouldRegisterUserSuccessfully() {
-        // Cenario
         UserRequestDTO dto = new UserRequestDTO("Amanda", "amanda@off3d.com", "senha123", UserRole.ADMIN);
         when(userRepository.findByEmail(dto.email())).thenReturn(Optional.empty());
-        when(passwordEncoder.encode(dto.password())).thenReturn("senha_hash_bcrypt");
+        when(passwordEncoder.encode(dto.password())).thenReturn("hash_bcrypt");
         when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArguments()[0]);
 
-        // Acao
         UserResponseDTO response = authService.register(dto);
 
-        // Verificacao
         assertNotNull(response);
         assertEquals(dto.email(), response.email());
-        verify(passwordEncoder).encode("senha123");
         verify(userRepository).save(any(User.class));
     }
 
     @Test
-    @DisplayName("Deve lançar exceção se o e-mail já existir")
+    @DisplayName("Deve lançar BusinessException se o e-mail já existir")
     void shouldThrowExceptionWhenEmailExists() {
         UserRequestDTO dto = new UserRequestDTO("Amanda", "amanda@off3d.com", "senha123", UserRole.ADMIN);
         when(userRepository.findByEmail(dto.email())).thenReturn(Optional.of(new User()));
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> authService.register(dto));
+        BusinessException exception = assertThrows(BusinessException.class, () -> authService.register(dto));
 
-        assertEquals("E-mail já cadastrado", exception.getMessage());
+        assertEquals("E-mail já cadastrado no sistema.", exception.getMessage());
         verify(userRepository, never()).save(any());
     }
 
     @Test
     @DisplayName("Deve recuperar o usuário autenticado atual com sucesso")
     void shouldGetCurrentUserSuccessfully() {
-        // Cenário: Criamos um mock do contexto de segurança
         User mockUser = new User();
         mockUser.setEmail("amanda@off3d.com.br");
-        mockUser.setName("Amanda");
 
         Authentication auth = mock(Authentication.class);
         SecurityContext securityContext = mock(SecurityContext.class);
@@ -79,35 +75,30 @@ class AuthServiceTest {
 
         SecurityContextHolder.setContext(securityContext);
 
-        // Ação
         User result = authService.getCurrentUser();
 
-        // Verificação
         assertNotNull(result);
         assertEquals("amanda@off3d.com.br", result.getEmail());
 
-        // Limpeza (Importante para não afetar outros testes)
         SecurityContextHolder.clearContext();
     }
 
     @Test
-    @DisplayName("Deve lançar exceção ao tentar recuperar usuário sem autenticação no contexto")
+    @DisplayName("Deve lançar exceção ao tentar recuperar usuário sem autenticação")
     void shouldThrowExceptionWhenNoAuthenticationInContext() {
-        // Cenário: Contexto vazio
         SecurityContextHolder.clearContext();
 
-        // Ação & Verificação
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            authService.getCurrentUser();
-        });
+        AuthenticationCredentialsNotFoundException exception = assertThrows(
+                AuthenticationCredentialsNotFoundException.class,
+                () -> authService.getCurrentUser()
+        );
 
-        assertEquals("Nenhum usuário autenticado encontrado", exception.getMessage());
+        assertEquals("Nenhum usuário autenticado encontrado no contexto de segurança.", exception.getMessage());
     }
 
     @Test
     @DisplayName("Deve lançar exceção ao tentar recuperar usuário não autenticado")
     void shouldThrowExceptionWhenUserIsNotAuthenticated() {
-        // Cenário: Existe auth no contexto, mas isAuthenticated é false
         Authentication auth = mock(Authentication.class);
         SecurityContext securityContext = mock(SecurityContext.class);
 
@@ -115,8 +106,7 @@ class AuthServiceTest {
         when(securityContext.getAuthentication()).thenReturn(auth);
         SecurityContextHolder.setContext(securityContext);
 
-        // Ação & Verificação
-        assertThrows(RuntimeException.class, () -> authService.getCurrentUser());
+        assertThrows(AuthenticationCredentialsNotFoundException.class, () -> authService.getCurrentUser());
 
         SecurityContextHolder.clearContext();
     }

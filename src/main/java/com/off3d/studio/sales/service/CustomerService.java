@@ -1,6 +1,8 @@
 package com.off3d.studio.sales.service;
 
 import com.off3d.studio.auth.domain.User;
+import com.off3d.studio.infra.exceptions.BusinessException;
+import com.off3d.studio.infra.exceptions.ResourceNotFoundException;
 import com.off3d.studio.sales.domain.Customer;
 import com.off3d.studio.sales.dto.CustomerRequestDTO;
 import com.off3d.studio.sales.dto.CustomerResponseDTO;
@@ -17,6 +19,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.off3d.studio.infra.config.ErrorMessages.CUSTOMER_NOT_FOUND;
+
 @Slf4j
 @Service
 public class CustomerService {
@@ -29,20 +33,17 @@ public class CustomerService {
 
     @Transactional
     public CustomerResponseDTO save(CustomerRequestDTO dto) {
-        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        log.info("Sócio [{}] - ID: {} está criando um novo pedido para o cliente ID: {}",
+        User currentUser = getCurrentUser();
+        log.info("Sócio [{}] - ID: {} cadastrando novo cliente: {}",
                 currentUser.getName(), currentUser.getId(), dto.name());
-        log.info("Cadastrando novo cliente: {}", dto.name());
 
         Customer customer = new Customer();
         customer.setName(dto.name());
         customer.setEmail(dto.email());
         customer.setPhone(dto.phone());
-
         customer.setCreatedBy(currentUser);
 
-        Customer savedCustomer = customerRepository.save(customer);
-        return mapToResponseDTO(savedCustomer, false);
+        return mapToResponseDTO(customerRepository.save(customer), false);
     }
 
     @Transactional(readOnly = true)
@@ -54,13 +55,12 @@ public class CustomerService {
 
     public Customer findById(UUID id) {
         return customerRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException(CUSTOMER_NOT_FOUND + id));
     }
 
     @Transactional(readOnly = true)
     public CustomerResponseDTO findByIdDetailed(UUID id) {
-        Customer customer = findById(id);
-        return mapToResponseDTO(customer, true);
+        return mapToResponseDTO(findById(id), true);
     }
 
     @Transactional
@@ -72,26 +72,50 @@ public class CustomerService {
         customer.setEmail(dto.email());
         customer.setPhone(dto.phone());
 
-        Customer updatedCustomer = customerRepository.save(customer);
-        return mapToResponseDTO(updatedCustomer, true);
+        return mapToResponseDTO(customerRepository.save(customer), true);
     }
 
     @Transactional
     public void delete(UUID id) {
         log.info("Iniciando exclusão do cliente ID: {}", id);
 
-        if (!customerRepository.existsById(id)) {
-            log.error("Erro: Cliente {} não encontrado para exclusão", id);
-            throw new RuntimeException("Cliente não encontrado");
-        }
+        Customer customer = findById(id);
 
         try {
-            customerRepository.deleteById(id);
+            customerRepository.delete(customer);
             log.info("Cliente {} removido com sucesso", id);
         } catch (DataIntegrityViolationException e) {
-            log.warn("Falha de segurança: Cliente {} possui pedidos vinculados e não pode ser deletado", id);
-            throw e;
+            log.warn("Bloqueio: Cliente {} possui pedidos vinculados e não pode ser deletado", id);
+            throw new BusinessException("Não é possível excluir um cliente que possui pedidos vinculados.");
         }
+    }
+
+    @Transactional
+    public CustomerResponseDTO upsert(CustomerRequestDTO dto) {
+        log.info("Operação de Upsert para e-mail: {}", dto.email());
+
+        Customer customer = customerRepository.findByEmail(dto.email())
+                .map(existingCustomer -> {
+                    log.info("Cliente encontrado. Atualizando ID: {}", existingCustomer.getId());
+                    existingCustomer.setName(dto.name());
+                    existingCustomer.setPhone(dto.phone());
+                    return existingCustomer;
+                })
+                .orElseGet(() -> {
+                    log.info("Cliente não encontrado. Criando novo.");
+                    Customer newCustomer = new Customer();
+                    newCustomer.setEmail(dto.email());
+                    newCustomer.setName(dto.name());
+                    newCustomer.setPhone(dto.phone());
+                    newCustomer.setCreatedBy(getCurrentUser());
+                    return newCustomer;
+                });
+
+        return mapToResponseDTO(customerRepository.save(customer), false);
+    }
+
+    private User getCurrentUser() {
+        return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
     private CustomerResponseDTO mapToResponseDTO(Customer customer, boolean detailed) {
@@ -105,7 +129,7 @@ public class CustomerService {
                             order.getTotalPrice(),
                             order.getStatus()
                     ))
-                    .collect(Collectors.toSet());
+                    .collect(Collectors.toUnmodifiableSet());
         }
 
         return new CustomerResponseDTO(
@@ -115,34 +139,5 @@ public class CustomerService {
                 customer.getPhone(),
                 orderDTOs
         );
-    }
-
-    @Transactional
-    public CustomerResponseDTO upsert(CustomerRequestDTO dto) {
-        log.info("Iniciando operação de Upsert para o e-mail: {}", dto.email());
-
-        // 1. Tenta buscar o cliente pelo e-mail
-        Customer customer = customerRepository.findByEmail(dto.email())
-                .map(existingCustomer -> {
-                    // 2. Se existe, atualiza os dados
-                    log.info("Cliente encontrado. Atualizando ID: {}", existingCustomer.getId());
-                    existingCustomer.setName(dto.name());
-                    existingCustomer.setPhone(dto.phone());
-                    return existingCustomer;
-                })
-                .orElseGet(() -> {
-                    // 3. Se não existe, cria um novo
-                    log.info("Cliente não encontrado. Criando novo.");
-                    User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-                    Customer newCustomer = new Customer();
-                    newCustomer.setEmail(dto.email());
-                    newCustomer.setName(dto.name());
-                    newCustomer.setPhone(dto.phone());
-                    newCustomer.setCreatedBy(currentUser);
-                    return newCustomer;
-                });
-
-        Customer savedCustomer = customerRepository.save(customer);
-        return mapToResponseDTO(savedCustomer, false);
     }
 }
